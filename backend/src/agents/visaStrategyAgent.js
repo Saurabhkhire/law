@@ -9,6 +9,7 @@ require('dotenv').config();
 const { openai, MODEL } = require('../config/openai');
 const { VISA_RULES } = require('../data/visaRules');
 const { applyTrustLayer } = require('./trustLayer');
+const { parseOpenAIMessageJson } = require('../utils/safeParse');
 
 // Score how well a profile matches a single visa category
 function scoreVisaMatch(profile, visaKey) {
@@ -121,7 +122,7 @@ Respond with this exact JSON structure:
     temperature: 0.2
   });
 
-  const analysis = JSON.parse(completion.choices[0].message.content);
+  const analysis = parseOpenAIMessageJson(completion);
 
   // Step 3: Apply trust layer
   const allCitations = [

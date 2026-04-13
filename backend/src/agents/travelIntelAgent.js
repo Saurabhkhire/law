@@ -10,6 +10,7 @@ const { openai, MODEL } = require('../config/openai');
 const { TRAVEL_RULES } = require('../data/visaRules');
 const { applyTrustLayer } = require('./trustLayer');
 const axios = require('axios');
+const { parsePendingApplications, parseOpenAIMessageJson } = require('../utils/safeParse');
 
 // Calculate unlawful presence (simplified)
 function calculateUnlawfulPresence(profile) {
@@ -27,7 +28,7 @@ function calculateUnlawfulPresence(profile) {
 
 // Determine base risk level from visa status + destination
 function getRiskLevel(profile, destination, travelParams) {
-  const pendingApps = JSON.parse(profile.pending_applications || '[]');
+  const pendingApps = parsePendingApplications(profile.pending_applications);
   const unlawfulDays = calculateUnlawfulPresence(profile);
 
   // Critical scenarios
@@ -63,7 +64,7 @@ async function fetchTravelAdvisory(country) {
 
 async function runTravelIntelAgent(profile, travelParams) {
   const { destination, purpose, travelDate, returnDate } = travelParams;
-  const pendingApps = JSON.parse(profile.pending_applications || '[]');
+  const pendingApps = parsePendingApplications(profile.pending_applications);
   const unlawfulDays = calculateUnlawfulPresence(profile);
   const isHomeCountry = destination.toLowerCase().includes(profile.citizenship?.toLowerCase() || '');
   const riskLevel = getRiskLevel(profile, destination, { isHomeCountry });
@@ -141,7 +142,7 @@ Respond with this exact JSON:
     temperature: 0.1
   });
 
-  const analysis = JSON.parse(completion.choices[0].message.content);
+  const analysis = parseOpenAIMessageJson(completion);
 
   const trustedOutput = await applyTrustLayer({
     content: JSON.stringify(analysis),

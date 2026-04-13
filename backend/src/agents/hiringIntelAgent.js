@@ -6,6 +6,7 @@ require('dotenv').config();
 const { openai, MODEL } = require('../config/openai');
 const { VISA_RULES } = require('../data/visaRules');
 const { applyTrustLayer } = require('./trustLayer');
+const { parseOpenAIMessageJson } = require('../utils/safeParse');
 
 const EMPLOYER_VISA_KNOWLEDGE = {
   'H-1B': {
@@ -199,7 +200,7 @@ Respond with:
     temperature: 0.2
   });
 
-  const analysis = JSON.parse(completion.choices[0].message.content);
+  const analysis = parseOpenAIMessageJson(completion);
 
   const trusted = await applyTrustLayer({
     content: JSON.stringify(analysis),
@@ -250,7 +251,7 @@ Respond with:
     temperature: 0.1
   });
 
-  return JSON.parse(completion.choices[0].message.content);
+  return parseOpenAIMessageJson(completion);
 }
 
 module.exports = { runHiringIntelAgent, generateComplianceReport, EMPLOYER_VISA_KNOWLEDGE, I9_GUIDANCE, LCA_REQUIREMENTS };

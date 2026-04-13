@@ -12,6 +12,7 @@ const { LETTER_TEMPLATES } = require('../data/letterTemplates');
 const { VISA_RULES } = require('../data/visaRules');
 const { applyTrustLayer } = require('./trustLayer');
 const axios = require('axios');
+const { parseOpenAIMessageJson } = require('../utils/safeParse');
 
 // Fetch supporting case law
 // SPONSOR: LexisNexis API
@@ -129,7 +130,7 @@ Respond with this JSON:
     temperature: 0.2
   });
 
-  const draft = JSON.parse(completion.choices[0].message.content);
+  const draft = parseOpenAIMessageJson(completion);
 
   // Apply trust layer
   const trusted = await applyTrustLayer({
@@ -197,7 +198,7 @@ Respond with:
     temperature: 0.1
   });
 
-  const response = JSON.parse(completion.choices[0].message.content);
+  const response = parseOpenAIMessageJson(completion);
 
   const trusted = await applyTrustLayer({
     content: response.coverLetterContent,
